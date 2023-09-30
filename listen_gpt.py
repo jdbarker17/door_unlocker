@@ -57,6 +57,7 @@ plt.plot(focuses, amplitudes, 'o', color='red')
 for i,focus in enumerate(focuses):
     if i > len(distances) - 1:
         break
+    #Plots distances on the main graph at desired altitudes
     plt.plot([focus,focus + distances[i]], [amplitudes[i],amplitudes[i]])
 
 
