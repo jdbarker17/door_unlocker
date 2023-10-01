@@ -50,7 +50,8 @@ def plot_signal(audio):
 
 # Main peak detection
 focuses, distances, amplitudes = main_peak_detection("band knock.wav")
-#plot_signal("snaps.wav")
+#plot_signal("snaps.wav")#
+
 
 # Plot detected main peaks on the waveform
 plt.plot(focuses, amplitudes, 'o', color='red')
@@ -60,6 +61,7 @@ for i,focus in enumerate(focuses):
     #Plots distances on the main graph at desired altitudes
     plt.plot([focus,focus + distances[i]], [amplitudes[i],amplitudes[i]])
 
+# TODO - iomplement system logic
 
 #plt.plot([focuses[0],focuses[0]+distances[0]],[amplitudes[0],amplitudes[0]])
 
