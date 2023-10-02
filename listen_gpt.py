@@ -3,12 +3,12 @@ import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 import numpy as np
 import wave
-
-def main_peak_detection(sound_file, window_size_seconds=0.15):
+import pyaudio
+def main_peak_detection(sound_file, window_size_seconds=0.05):
     fs, data = read(sound_file)
     
     # Detect all peaks
-    all_peaks, _ = find_peaks(data, height=1000)
+    all_peaks, _ = find_peaks(data, height=15000)
     
     main_peaks = []
     
@@ -48,27 +48,84 @@ def plot_signal(audio):
     plt.xlabel('Time (s)')
     plt.xlim(time[0], time[-1])
 
+
+################################### Audio Recording and Processing ################################################
+# Parameters
+FORMAT = pyaudio.paInt16
+CHANNELS = 1
+RATE = 44100
+CHUNK = 1024
+THRESHOLD = 500  # Adjust this value based on your needs
+RECORD_SECONDS = 5  # Duration to record after detecting the sound
+
+def is_triggered(data):
+    """Check if the audio data exceeds the threshold."""
+    amplitudes = np.frombuffer(data, dtype=np.int16)
+    if np.abs(amplitudes).mean() > THRESHOLD:
+        return True
+    return False
+
+def record_audio():
+    audio = pyaudio.PyAudio()
+    
+    # Start streaming from microphone
+    stream = audio.open(format=FORMAT, channels=CHANNELS,
+                        rate=RATE, input=True,
+                        frames_per_buffer=CHUNK)
+    
+    print("Listening...")
+
+    recording_data = []
+    while True:
+        data = stream.read(CHUNK)
+        if is_triggered(data):
+            print("Recording...")
+            recording_data.append(data)
+            for _ in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
+                data = stream.read(CHUNK)
+                recording_data.append(data)
+            break
+
+    stream.stop_stream()
+    stream.close()
+    audio.terminate()
+
+    return b''.join(recording_data)
+   
+
+
+def save_wav_file(filename, audio_data):
+    """Save audio data to a WAV file."""
+    with wave.open(filename, 'wb') as wf:
+        wf.setnchannels(CHANNELS)
+        wf.setsampwidth(pyaudio.get_sample_size(FORMAT))
+        wf.setframerate(RATE)
+        wf.writeframes(audio_data)
+
+
 # Main peak detection
-focuses, distances, amplitudes = main_peak_detection("band knock.wav")
+#focuses, distances, amplitudes = main_peak_detection("knock2.wav")
 #plot_signal("snaps.wav")#
 
 
 # Plot detected main peaks on the waveform
-plt.plot(focuses, amplitudes, 'o', color='red')
-for i,focus in enumerate(focuses):
-    if i > len(distances) - 1:
-        break
-    #Plots distances on the main graph at desired altitudes
-    plt.plot([focus,focus + distances[i]], [amplitudes[i],amplitudes[i]])
-
-# TODO - iomplement system logic
-
-#plt.plot([focuses[0],focuses[0]+distances[0]],[amplitudes[0],amplitudes[0]])
 
 
-plt.show()
+#focuses, distances, amplitudes  # Return these values to inspect
+#print(f'Distances = {distances}')
+#print(f'Focuses = {focuses}')
+#print(f'Amplitudes = {amplitudes}')
 
-focuses, distances, amplitudes  # Return these values to inspect
-print(f'Distances = {distances}')
-print(f'Focuses = {focuses}')
-print(f'Amplitudes = {amplitudes}')
+if __name__ == '__main__':
+    #recorded_audio = record_audio()
+    #save_wav_file("output.wav", recorded_audio)
+
+    focuses, distances, amplitudes = main_peak_detection("output.wav")
+    #plt.plot([focuses[0],focuses[0]+distances[0]],[amplitudes[0],amplitudes[0]])
+    #plt.plot(focuses, amplitudes, 'o', color='red')
+    for i,focus in enumerate(focuses):
+        if i > len(distances) - 1:
+            break
+        #Plots distances on the main graph at desired altitudes
+        plt.plot([focus,focus + distances[i]], [amplitudes[i],amplitudes[i]])
+    plt.show()
