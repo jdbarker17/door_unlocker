@@ -4,11 +4,20 @@ from scipy.signal import find_peaks
 import numpy as np
 import wave
 import pyaudio
+
+# Globals
+FORMAT = pyaudio.paInt16
+CHANNELS = 1
+RATE = 44100
+CHUNK = 1024
+THRESHOLD = 500
+secret = [0.56655329, 0.55641723, 0.30201814]
+
 def main_peak_detection(sound_file, window_size_seconds=0.05):
     fs, data = read(sound_file)
     
     # Detect all peaks
-    all_peaks, _ = find_peaks(data, height=15000)
+    all_peaks, _ = find_peaks(data, height=5000)
     
     main_peaks = []
     
@@ -49,26 +58,28 @@ def plot_signal(audio):
     plt.xlim(time[0], time[-1])
 
 
-################################### Audio Recording and Processing ################################################
-# Parameters
-FORMAT = pyaudio.paInt16
-CHANNELS = 1
-RATE = 44100
-CHUNK = 1024
-THRESHOLD = 500  # Adjust this value based on your needs
-RECORD_SECONDS = 5  # Duration to record after detecting the sound
+
 
 def is_triggered(data):
     """Check if the audio data exceeds the threshold."""
+    THRESHOLD = 500  
     amplitudes = np.frombuffer(data, dtype=np.int16)
     if np.abs(amplitudes).mean() > THRESHOLD:
         return True
     return False
 
-def record_audio():
+def record_audio(RECORD_SECONDS = 5):
     audio = pyaudio.PyAudio()
-    
-    # Start streaming from microphone
+    ################################### Audio Recording and Processing ################################################
+    # Parameters
+    FORMAT = pyaudio.paInt16
+    CHANNELS = 1
+    RATE = 44100
+    CHUNK = 1024
+    THRESHOLD = 500  # Adjust this value based on your needs
+    # RECORD_SECONDS = 5  # Duration to record after detecting the sound
+        # Start streaming from microphone
+
     stream = audio.open(format=FORMAT, channels=CHANNELS,
                         rate=RATE, input=True,
                         frames_per_buffer=CHUNK)
@@ -96,11 +107,34 @@ def record_audio():
 
 def save_wav_file(filename, audio_data):
     """Save audio data to a WAV file."""
+    FORMAT = pyaudio.paInt16
+    CHANNELS = 1
     with wave.open(filename, 'wb') as wf:
         wf.setnchannels(CHANNELS)
         wf.setsampwidth(pyaudio.get_sample_size(FORMAT))
         wf.setframerate(RATE)
         wf.writeframes(audio_data)
+
+def validate(distances):
+    
+    if len(distances) != len(secret):
+        return False
+    
+    else:
+        for i,distance in enumerate(distances):
+            #Set tolerance equal to 50% of the value
+            tolerance = 0.5
+            # If its within upper and lower tolerances
+            if (distance  < secret[i] * tolerance + secret[i]) and distance > secret[i] - (tolerance *  secret[i]):
+                continue
+            else:
+                return False
+        
+        return True
+
+
+
+
 
 
 # Main peak detection
@@ -117,15 +151,21 @@ def save_wav_file(filename, audio_data):
 #print(f'Amplitudes = {amplitudes}')
 
 if __name__ == '__main__':
-    #recorded_audio = record_audio()
-    #save_wav_file("output.wav", recorded_audio)
+    recorded_audio = record_audio(5)
+    save_wav_file("output.wav", recorded_audio)
 
     focuses, distances, amplitudes = main_peak_detection("output.wav")
-    #plt.plot([focuses[0],focuses[0]+distances[0]],[amplitudes[0],amplitudes[0]])
-    #plt.plot(focuses, amplitudes, 'o', color='red')
+    print(f'Distances = {distances}')
+    print(f'Focuses = {focuses}')
+    print(f'Amplitudes = {amplitudes}')
+
+    plt.plot([focuses[0],focuses[0]+distances[0]],[amplitudes[0],amplitudes[0]])
+    plt.plot(focuses, amplitudes, 'o', color='red')
     for i,focus in enumerate(focuses):
         if i > len(distances) - 1:
             break
         #Plots distances on the main graph at desired altitudes
         plt.plot([focus,focus + distances[i]], [amplitudes[i],amplitudes[i]])
     plt.show()
+
+    print(validate(distances))
