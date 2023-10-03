@@ -11,7 +11,10 @@ CHANNELS = 1
 RATE = 44100
 CHUNK = 1024
 THRESHOLD = 500
-secret = [0.56655329, 0.55641723, 0.30201814]
+#secret = [0.56655329, 0.55641723, 0.30201814]
+secret = [0.2550794, 0.12126984, 0.2592517,  0.22126984, 0.23764172, 0.14269841, 0.24099773, 0.25594104, 0.26643991, 0.13537415, 0.23557823, 0.54469388, 0.23739229, 0.49097506, 0.2623356, 0.13979592, 0.2624263, 0.49927438]
+
+
 
 def main_peak_detection(sound_file, window_size_seconds=0.05):
     fs, data = read(sound_file)
@@ -133,33 +136,17 @@ def validate(distances):
         return True
 
 
+def plot_analysis(focuses,distances,amplitudes):
 
-
-
-
-# Main peak detection
-#focuses, distances, amplitudes = main_peak_detection("knock2.wav")
-#plot_signal("snaps.wav")#
-
-
-# Plot detected main peaks on the waveform
-
-
-#focuses, distances, amplitudes  # Return these values to inspect
-#print(f'Distances = {distances}')
-#print(f'Focuses = {focuses}')
-#print(f'Amplitudes = {amplitudes}')
-
-if __name__ == '__main__':
-    recorded_audio = record_audio(5)
-    save_wav_file("output.wav", recorded_audio)
-
-    focuses, distances, amplitudes = main_peak_detection("output.wav")
+    #Prints for Distances, Focuses, and Amplitudes
     print(f'Distances = {distances}')
     print(f'Focuses = {focuses}')
     print(f'Amplitudes = {amplitudes}')
 
+    #Plot for Distance Lines
     plt.plot([focuses[0],focuses[0]+distances[0]],[amplitudes[0],amplitudes[0]])
+
+    #Plot for Focus Lines
     plt.plot(focuses, amplitudes, 'o', color='red')
     for i,focus in enumerate(focuses):
         if i > len(distances) - 1:
@@ -168,4 +155,11 @@ if __name__ == '__main__':
         plt.plot([focus,focus + distances[i]], [amplitudes[i],amplitudes[i]])
     plt.show()
 
+
+if __name__ == '__main__':
+    recorded_audio = record_audio(5)
+    save_wav_file("output.wav", recorded_audio)
+
+    focuses, distances, amplitudes = main_peak_detection("output.wav")
+    plot_analysis(focuses,distances,amplitudes)
     print(validate(distances))
