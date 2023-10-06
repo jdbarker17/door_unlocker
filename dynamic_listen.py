@@ -4,6 +4,11 @@ from scipy.signal import find_peaks
 import numpy as np
 import wave
 import pyaudio
+import sys
+import os
+import requests
+import json
+
 
 # Globals
 FORMAT = pyaudio.paInt16
@@ -205,14 +210,49 @@ def plot_analysis(focuses,distances,amplitudes):
     plt.show()
 
 
-if __name__ == '__main__':
-    recorded_audio,output_array = record_audio(5)
+def open_door():
+    api_url = "localhost:1717"
+    todo = {"UnlockCode": 1}
+    headers =  {"Content-Type":"application/json"}
+    response = requests.post(api_url, data=json.dumps(todo), headers=headers)
+    print(response.json())
+
+def close_door():
+    api_url = "localhost:1717"
+    todo = {"UnlockCode": 0}
+    headers =  {"Content-Type":"application/json"}
+    response = requests.post(api_url, data=json.dumps(todo), headers=headers)
+    print(response.json())
+
+
+    # Implement open door code here
     
-    print(output_array)
-    print(f'Secret = {create_secret(output_array)}')
 
-    save_wav_file("output.wav", recorded_audio)
+def main():
+    while True:
+        recorded_audio,output_array = record_audio(5)
+        print(output_array)
+        print(f'Secret = {create_secret(output_array)}')
+        save_wav_file("output.wav", recorded_audio)
+        focuses, distances, amplitudes = main_peak_detection("output.wav")
+        plot_analysis(focuses,distances,amplitudes)
+        knock_code = validate_sizes(distances)
 
-    focuses, distances, amplitudes = main_peak_detection("output.wav")
-    plot_analysis(focuses,distances,amplitudes)
-    print(validate_sizes(distances))
+        if knock_code:
+            open_door()
+        
+
+
+#Implementation of Control C Exit Function
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        print('Interrupted')
+        try:
+            sys.exit(130)
+        except SystemExit:
+            os._exit(130)
+
+
+
