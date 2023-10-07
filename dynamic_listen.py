@@ -227,7 +227,7 @@ def close_door():
 
     # Implement open door code here
     
-
+# Extra loop
 def main():
     while True:
         recorded_audio,output_array = record_audio(5)
@@ -240,6 +240,8 @@ def main():
 
         if knock_code:
             open_door()
+        
+
         
 
 
