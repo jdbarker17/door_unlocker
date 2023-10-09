@@ -1,15 +1,24 @@
 import pigpio
 import time
 
-servo = 18
- 
-pwm = pigpio.pi() 
-pwm.set_mode(servo, pigpio.OUTPUT)
- 
-pwm.set_PWM_frequency(servo, 50)
-pwm.set_PWM_range(servo, 20000) # 1,000,000 / 50 = 20,000us for 100% duty cycle
+SERVO_PIN = 18
 
-pwm.hardware_PWM(servo, 50, 2000)
-time.sleep(10)
+def set_servo_angle(pi,pin,angle):
+    pulse_width = int((angle/180.0 * 2000) + 500)
+    pi.set_servo_pulsewidth(pin,pulse_width)
 
-pwm.set_servo_pulsewidth(servo, 0)
+def main():
+    pi = pigpio.pi()
+    pi.set_mode(SERVO_PIN, pigpio.OUTPUT)
+
+    
+    set_servo_angle(pi,SERVO_PIN,120)
+    
+    time.sleep(2)
+
+    set_servo_angle(pi,SERVO_PIN,10)
+    #pi.set_servo_pulsewidth(SERVO_PIN,0)
+    pi.stop()
+
+if __name__ == "__main__":
+    main()
