@@ -20,6 +20,24 @@ secret = [0.56655329, 0.55641723, 0.30201814]
 secret_sizes = [23,23,9]
 #secret = [0.2550794, 0.12126984, 0.2592517,  0.22126984, 0.23764172, 0.14269841, 0.24099773, 0.25594104, 0.26643991, 0.13537415, 0.23557823, 0.54469388, 0.23739229, 0.49097506, 0.2623356, 0.13979592, 0.2624263, 0.49927438]
 
+def open_door():
+    url = 'http://192.168.1.212:1717'
+    #port = 1717
+    headers = {"Content-Type":"application/json"}
+    data ={
+        "door_position":"1"
+    }
+    response = requests.post(url,headers = headers, data = json.dumps(data))
+
+def close_door():
+    url = 'http://192.168.1.212:1717'
+    #port = 1717
+    headers = {"Content-Type":"application/json"}
+    data ={
+        "door_position":"1"
+    }
+    response = requests.post(url,headers = headers, data = json.dumps(data))
+
 
 
 def main_peak_detection(sound_file, window_size_seconds=0.05):
@@ -237,13 +255,9 @@ def main():
         focuses, distances, amplitudes = main_peak_detection("output.wav")
         plot_analysis(focuses,distances,amplitudes)
         knock_code = validate_sizes(distances)
-
         if knock_code:
             open_door()
         
-
-        
-
 
 #Implementation of Control C Exit Function
 if __name__ == '__main__':
