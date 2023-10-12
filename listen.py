@@ -76,7 +76,6 @@ plt.xlim(time[0], time[-1]) #limiting the x axis to the audio time
 min_val = 5000
 #The number of indexes on 0.15 seconds
 focus_size = int(0.15 * fs)
-
 focuses = []
 distances = []
 idx = 0
